@@ -7,5 +7,7 @@ app_name = "app_photo"
 urlpatterns = [
     path('', views.index, name='home'),  # app_photo:home
     path('pictures/', views.pictures, name='pictures'),
-    path('upload/', views.upload, name='upload')
+    path('upload/', views.upload, name='upload'),
+    path('pictures/edit/<int:pic_id>', views.edit, name='edit'),
+    path('pictures/remove/<int:pic_id>', views.remove, name='remove')
 ]

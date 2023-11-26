@@ -12,7 +12,8 @@
                     <h5 class="card-title">Card title</h5>
                     <p class="card-text">{{pic.description}}
                     </p>
-                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                    <a href="{% url 'app_photo:edit' pic.id %}" class="btn btn-info">Edit description</a>
+                    <a href="{% url 'app_photo:remove' pic.id %}" class="btn btn-danger">Delete pictures</a>
                 </div>
             </div>
         </div>

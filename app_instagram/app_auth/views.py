@@ -11,6 +11,11 @@ class RegisterView(View):
     template_name = 'app_auth/register.html'
     forms_class = RegisterForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(to="app_photo:home")
+        return super().dispatch(request, *args, **kwargs)
+
     def get(self, request):
         return render(request, self.template_name, context={"form": self.forms_class})
 
