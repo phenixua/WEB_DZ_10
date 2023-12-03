@@ -11,13 +11,13 @@ from .models import Picture
 # Create your views here.
 
 def index(request):
-    return render(request, template_name='app_photo/index.html', context={"msg": "Hello world!"})
+    return render(request, template_name='quote/index.html', context={"msg": "Hello world!"})
 
 
 @login_required
 def pictures(request):
     pics = Picture.objects.filter(user=request.user).all()
-    return render(request, template_name='app_photo/pictures.html', context={"pics": pics})
+    return render(request, template_name='quote/pictures.html', context={"pics": pics})
 
 
 @login_required
@@ -29,8 +29,8 @@ def upload(request):
             pic = form.save(commit=False)
             pic.user = request.user
             pic.save()
-            return redirect(to="app_photo:pictures")
-    return render(request, template_name='app_photo/upload.html', context={"form": form})
+            return redirect(to="quote:pictures")
+    return render(request, template_name='quote/upload.html', context={"form": form})
 
 
 @login_required
@@ -38,9 +38,9 @@ def edit(request, pic_id):
     if request.method == 'POST':
         desc = request.POST.get('description')
         Picture.objects.filter(pk=pic_id, user=request.user).update(description=desc)
-        return redirect(to="app_photo:pictures")
+        return redirect(to="quote:pictures")
     pic = Picture.objects.filter(pk=pic_id, user=request.user).first()
-    return render(request, template_name='app_photo/edit_desc.html', context={"pic": pic})
+    return render(request, template_name='quote/edit_desc.html', context={"pic": pic})
 
 
 @login_required
@@ -54,4 +54,4 @@ def remove(request, pic_id):
     else:
         print('File not removed')
 
-    return redirect(to="app_photo:pictures")
+    return redirect(to="quote:pictures")

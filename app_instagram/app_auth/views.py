@@ -13,7 +13,7 @@ class RegisterView(View):
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
-            return redirect(to="app_photo:home")
+            return redirect(to="quote:home")
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
