@@ -4,7 +4,7 @@ from .models import Quote, Author
 
 class QuoteForm(forms.ModelForm):
     # Використовуємо звичайне поле CharField для тегів
-    tags = forms.CharField(max_length=84, help_text="Введіть теги через кому.")
+    tags = forms.CharField(max_length=84, widget=forms.TextInput(attrs={'placeholder': 'Enter tags'}))
 
     class Meta:
         model = Quote
