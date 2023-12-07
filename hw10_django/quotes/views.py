@@ -1,16 +1,14 @@
 from django.shortcuts import render, redirect, get_list_or_404, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views import View
-
 
 from .forms import QuoteForm, AuthorForm, AuthorEditForm
 from .models import Author, Quote, Tag
 
 
 def main(request, page=1):
-    # Отримуємо всі цитати разом з даними авторів та користувачів
     quotes = get_list_or_404(Quote.objects.select_related('author', 'user').all())
 
     elem_per_page = 10
@@ -32,22 +30,18 @@ def add_quote(request):
         author_form = AuthorForm(request.POST)
 
         if quote_form.is_valid():
-            # Отримуємо або створюємо автора
             author_name = request.POST.get('fullname')
             author, created = Author.objects.get_or_create(fullname=author_name, defaults={'user': request.user})
 
-            # Зберігаємо цитату та пов'язуємо її з автором
             quote = quote_form.save(commit=False)
             quote.user = request.user
             quote.author = author
             quote.save()
 
-            # Обробка тегів
             tags = quote_form.cleaned_data['tags']
             tag_objects = [Tag.objects.get_or_create(name=tag.strip())[0] for tag in tags]
             quote.tags.set(tag_objects)
 
-            # Перенаправлення на сторінку зі списком цитат
             return redirect('quotes:root')
     else:
         quote_form = QuoteForm()
@@ -60,15 +54,12 @@ def add_quote(request):
 def edit_author(request, author_id):
     author = get_object_or_404(Author, id=author_id)
 
-    # Перевіряємо, що поточний користувач створював автора
-    if request.user.id != author.user.id:
-        # Якщо не є, виконуємо перенаправлення
+    if author and request.user.id != author.user.id:
         return redirect('quotes:root')
 
     if request.method == 'POST':
         form = AuthorEditForm(request.POST, instance=author)
         if form.is_valid():
-            # Зберігаємо зміни в даних автора
             form.save()
             return redirect('quotes:author_detail', author_id=author_id)
     else:
@@ -79,20 +70,21 @@ def edit_author(request, author_id):
 
 @login_required
 def delete_quote(request, quote_id):
-    quote = get_object_or_404(Quote, id=quote_id)
+    if request.method == 'POST':
+        quote = get_object_or_404(Quote, id=quote_id)
 
-    if request.user.is_authenticated and quote.user == request.user:
-        author = quote.author
-        quote.delete()
+        if quote.user == request.user:
+            author = quote.author
+            quote.delete()
 
-        # Перевіряємо, чи є ще цитати автора
-        if Quote.objects.filter(author=author).count() == 0:
-            # Якщо більше немає цитат автора, видаляємо автора
-            author.delete()
+            if Quote.objects.filter(author=author).count() == 0:
+                author.delete()
 
-        return JsonResponse({'message': 'Your Quote was deleted successfully.'})
+            return redirect('quotes:root')
+        else:
+            return JsonResponse({'message': 'Your access was not authorized or Quote does not exist.'}, status=401)
     else:
-        return JsonResponse({'message': 'Your access was not authorized or Quote does not exist.'}, status=401)
+        return HttpResponseNotAllowed(['POST'])
 
 
 class TagQuotesView(View):
@@ -100,7 +92,6 @@ class TagQuotesView(View):
     quotes_per_page = 10
 
     def get(self, request, *args, **kwargs):
-        # Тут ключ ['tag_name'] тому, що у файлi urls.py заданий шлях <str:tag_name>
         tag_name = kwargs['tag_name']
         tag = get_object_or_404(Tag, name=tag_name)
         quotes_with_tag = get_list_or_404(Quote.objects.filter(tags=tag))
