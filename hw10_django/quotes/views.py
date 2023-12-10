@@ -3,6 +3,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views import View
+from django.db.models import Count  # Додано імпорт Count
 
 from .forms import QuoteForm, AuthorForm, AuthorEditForm
 from .models import Author, Quote, Tag
@@ -15,7 +16,10 @@ def main(request, page=1):
     paginator = Paginator(quotes, elem_per_page)
     quotes_on_page = paginator.page(page)
 
-    return render(request, "quotes/index.html", context={"quotes": quotes_on_page})
+    # Додано логіку для отримання топ-10 тегів
+    top_tags = Tag.objects.annotate(num_quotes=Count('quote')).order_by('-num_quotes')[:10]
+
+    return render(request, "quotes/index.html", context={"quotes": quotes_on_page, "top_tags": top_tags})
 
 
 def author_detail(request, author_id):
@@ -54,7 +58,8 @@ def add_quote(request):
 def edit_author(request, author_id):
     author = get_object_or_404(Author, id=author_id)
 
-    if author and request.user.id != author.user.id:
+    # Додавання перевірки, чи існує author.user перед порівнянням id
+    if author.user and request.user.id != author.user.id:
         return redirect('quotes:root')
 
     if request.method == 'POST':

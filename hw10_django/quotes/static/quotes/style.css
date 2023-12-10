@@ -30,6 +30,10 @@
 	background-color: #7CA3E6;
 }
 
+.tags-box {
+    text-align: right;
+}
+
 .pager {
 	font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
@@ -81,4 +85,8 @@
 	margin-left: 20%;
     margin-right: 20%;
 	margin-bottom: 20px;
+}
+
+a {
+    text-decoration: none;
 }
